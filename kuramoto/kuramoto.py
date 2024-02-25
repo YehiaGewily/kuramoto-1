@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.integrate import odeint
+import matplotlib.pyplot as plt
 
 
 class Kuramoto:
@@ -28,7 +29,7 @@ class Kuramoto:
             raise ValueError("n_nodes or natfreqs must be specified")
 
         self.dt = dt
-        self.T = T
+        self.T = T 
         self.coupling = coupling
 
         if natfreqs is not None:
@@ -69,29 +70,23 @@ class Kuramoto:
         # Compute it only once here and pass it to the derivative function
         n_interactions = (adj_mat != 0).sum(axis=0)  # number of incoming interactions
         coupling = self.coupling / n_interactions  # normalize coupling by number of interactions
-
+        '''
+        here is the change
+        ''' 
         t = np.linspace(0, self.T, int(self.T/self.dt))
+
         timeseries = odeint(self.derivative, angles_vec, t, args=(adj_mat, coupling))
         return timeseries.T  # transpose for consistency (act_mat:node vs time)
 
-    def run(self, adj_mat=None, angles_vec=None):
-        '''
-        adj_mat: 2D nd array
-            Adjacency matrix representing connectivity.
-        angles_vec: 1D ndarray, optional
-            States vector of nodes representing the position in radians.
-            If not specified, random initialization [0, 2pi].
 
-        Returns
-        -------
-        act_mat: 2D ndarray
-            Activity matrix: node vs time matrix with the time series of all
-            the nodes.
-        '''
+
+    def run(self, adj_mat=None, angles_vec=None):
         if angles_vec is None:
             angles_vec = self.init_angles()
 
-        return self.integrate(angles_vec, adj_mat)
+        timeseries = self.integrate(angles_vec, adj_mat)
+        return timeseries
+
 
     @staticmethod
     def phase_coherence(angles_vec):
@@ -118,4 +113,26 @@ class Kuramoto:
         # Average across complete time window - mean angular velocity (freq.)
         meanfreq = integral / self.T
         return meanfreq
+    
+
+
+    def calculate_average_sine_phase(self, adj_mat=None, angles_vec=None):
+        if angles_vec is None:
+            angles_vec = self.init_angles()
+
+        timeseries = self.integrate(angles_vec, adj_mat)
+        avg_sine_phases = []
+        time_steps = []
+
+        for t in range(timeseries.shape[1]):
+            current_phase = timeseries[:, t]
+            r_t = self.phase_coherence(current_phase)
+
+            if 0.7 <= r_t <= 0.85:
+                avg_phase = np.mean(np.exp(1j * current_phase)).real
+                avg_sine_phases.append(np.sin(avg_phase))
+                time_steps.append(t * self.dt)
+
+        return time_steps, avg_sine_phases
+
 

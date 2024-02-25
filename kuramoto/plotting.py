@@ -35,3 +35,15 @@ def plot_phase_coherence(activity):
     ax.set_xlabel('Time', fontsize=20)
     ax.set_ylim((-0.01, 1))
     return ax
+
+def plot_predicted_eeg(time_steps, avg_sine_phases, dt):
+    plt.figure(figsize=(12, 6))
+    time_steps= [i/dt for i in time_steps]
+    avg_sine_phases= [j/dt for j in avg_sine_phases]
+    plt.plot( time_steps, avg_sine_phases , label='Predicted EEG Signal')
+    plt.xlabel('Time')
+    plt.ylabel('Sine of Average Phase')
+    plt.title('Predicted EEG Signal')
+    plt.legend()
+    plt.show()
+
