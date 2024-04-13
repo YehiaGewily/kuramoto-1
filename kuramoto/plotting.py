@@ -36,14 +36,35 @@ def plot_phase_coherence(activity):
     ax.set_ylim((-0.01, 1))
     return ax
 
-def plot_predicted_eeg(time_steps, avg_sine_phases, dt):
+def plot_predicted_eeg(time_steps, psi_values):
     plt.figure(figsize=(12, 6))
-    time_steps= [i/dt for i in time_steps]
-    avg_sine_phases= [j/dt for j in avg_sine_phases]
-    plt.plot( time_steps, avg_sine_phases , label='Predicted EEG Signal')
-    plt.xlabel('Time')
-    plt.ylabel('Sine of Average Phase')
+    avg_sine_phases = np.sin(psi_values)
+    plt.plot(time_steps, avg_sine_phases, label='Predicted EEG Signal')
+    plt.xlabel('Time (s)')
+    plt.ylabel('Sine of Average Phase (ψ)')
     plt.title('Predicted EEG Signal')
     plt.legend()
-    plt.show()
+ 
 
+def plot_phase_heatmap(activity, colormap='viridis', xlabel='Time Step', ylabel='Oscillator', 
+                       title='Phase Heatmap of Kuramoto Oscillators'):
+    plt.figure(figsize=(10, 6))
+    plt.imshow(activity, aspect='auto', origin='lower', cmap=colormap,
+               extent=[0, activity.shape[1], 0, activity.shape[0]])
+    plt.colorbar(label='Phase (radians)')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+
+def plot_phase_space_trajectory(activity, oscillator_index_i=0, oscillator_index_j=1, 
+                                point_style='r.', grid=True, xlabel='sin(phase of oscillator i)', 
+                                ylabel='sin(phase of oscillator j)', title='Phase Space Trajectory of Two Coupled Oscillators'):
+     oscillator_i = activity[3, :]  # First oscillator
+     oscillator_j = activity[4, :]  # Second oscillator
+
+     plt.figure(figsize=(8, 8))
+     plt.plot(np.sin(oscillator_i), np.sin(oscillator_j), point_style, linestyle='none')
+     plt.xlabel(xlabel)
+     plt.ylabel(ylabel)
+     plt.title(title)
+     plt.grid(grid)

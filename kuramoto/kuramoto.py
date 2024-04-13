@@ -90,11 +90,8 @@ class Kuramoto:
 
     @staticmethod
     def phase_coherence(angles_vec):
-        '''
-        Compute global order parameter R_t - mean length of resultant vector
-        '''
-        suma = sum([(np.e ** (1j * i)) for i in angles_vec])
-        return abs(suma / len(angles_vec))
+        coherence = np.abs(np.mean(np.exp(1j * angles_vec)))
+        return coherence
 
     def mean_frequency(self, act_mat, adj_mat):
         '''
@@ -116,23 +113,105 @@ class Kuramoto:
     
 
 
-    def calculate_average_sine_phase(self, adj_mat=None, angles_vec=None):
+    def calculate_psi_within_r_range(self, adj_mat=None, angles_vec=None, r_min=0.6, r_max=0.8):
         if angles_vec is None:
             angles_vec = self.init_angles()
 
         timeseries = self.integrate(angles_vec, adj_mat)
-        avg_sine_phases = []
+        psi_values = []
+        r_values = []
         time_steps = []
 
         for t in range(timeseries.shape[1]):
             current_phase = timeseries[:, t]
+            order_parameter = np.mean(np.exp(1j * current_phase))
+
+            # Calculate r at each timestep using the phase_coherence function
             r_t = self.phase_coherence(current_phase)
 
-            if 0.7 <= r_t <= 0.85:
-                avg_phase = np.mean(np.exp(1j * current_phase)).real
-                avg_sine_phases.append(np.sin(avg_phase))
-                time_steps.append(t * self.dt)
+            # Store psi and r if r is within the specified range
+            if r_min <= r_t <= r_max:
+                # Calculate psi at each timestep as the argument of the order parameter
+                psi_t = np.angle(order_parameter)
+                psi_values.append(psi_t)
+                r_values.append(r_t)
+                time_steps.append(t * self.dt)  # Store the actual time step
 
-        return time_steps, avg_sine_phases
+        return time_steps, r_values, psi_values
+    
+    
+    def phase_portrait(self, timeseries):
+        """
+        Calculate the phase portrait by computing the angle (theta) and its derivative (angular velocity) for each time step.
+
+        Parameters:
+        timeseries: 2D array
+            The timeseries data from the Kuramoto model simulation.
+
+        Returns:
+        (theta, theta_dot): tuple of ndarray
+            The angles and their derivatives.
+        """
+        theta = np.arctan2(np.sin(timeseries), np.cos(timeseries))  # Calculate angles from sine
+        theta_dot = np.gradient(theta, axis=1) / self.dt  # Calculate angular velocity
+        return theta, theta_dot
+
+    def calculate_centroid(self, theta, theta_dot):
+        """
+        Calculate the centroid of the phase portrait.
+
+        Parameters:
+        theta: ndarray
+            The angles of the oscillators.
+        theta_dot: ndarray
+            The angular velocities of the oscillators.
+
+        Returns:
+        centroid: tuple
+            The centroid (mean_x, mean_y) of the phase portrait.
+        """
+        mean_x = np.mean(theta)
+        mean_y = np.mean(theta_dot)
+        return mean_x, mean_y
+
+    def shift_by_centroid(self, theta, theta_dot, centroid):
+        """
+        Shift the phase portrait by its centroid.
+
+        Parameters:
+        theta: ndarray
+            The angles of the oscillators.
+        theta_dot: ndarray
+            The angular velocities of the oscillators.
+        centroid: tuple
+            The centroid (mean_x, mean_y) of the phase portrait.
+
+        Returns:
+        shifted_theta, shifted_theta_dot: tuple of ndarray
+            The shifted angles and angular velocities.
+        """
+        shifted_theta = theta - centroid[0]
+        shifted_theta_dot = theta_dot - centroid[1]
+        return shifted_theta, shifted_theta_dot
+
+    def histogram_phase_portrait(self, theta, theta_dot, bins=30):
+        """
+        Calculate and flatten the 2D histogram of the phase portrait.
+
+        Parameters:
+        theta: ndarray
+            The angles of the oscillators.
+        theta_dot: ndarray
+            The angular velocities of the oscillators.
+        bins: int or [int, int]
+            The number of histogram bins for each dimension (x and y).
+
+        Returns:
+        h: ndarray
+            The flattened 2D histogram of the phase portrait.
+        """
+        H, xedges, yedges = np.histogram2d(theta.ravel(), theta_dot.ravel(), bins=bins)
+        h = H.flatten()
+        return h
 
 
