@@ -1,0 +1,2 @@
+Time-Domain Features: {'mean': 0.004921001601197396, 'variance': 0.04770121210559829, 'peak_to_peak': 1.2301292991744661, 'rms': 0.21846150315869678, 'std_dev': 0.21840607158592978, 'zero_crossing_rate': 0.00036}
+Frequency-Domain Features: {'delta_power': 7.548162928154444e-05, 'theta_power': 1.5639145593444804e-08, 'alpha_power': 5.1156246110985e-10, 'beta_power': 5.405425485675208e-11, 'gamma_power': 9.209504777841105e-13, 'spectral_entropy': 0.2727061570865194, 'spectral_centroid': 1.052077333182997, 'spectral_rolloff': 1.0}
