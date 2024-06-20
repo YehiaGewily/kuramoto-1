@@ -1,6 +1,5 @@
-import mne
-import numpy as np
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from mne.io import RawArray
@@ -16,7 +15,7 @@ file_path = 'OpenBCI_GUI-v5-blinks-jawClench-alpha.txt'  # Replace with your act
 data = pd.read_csv(file_path, comment='%', header=None)
 
 # Step 2: Extract EEG data and channel names
-# The first column is the sample index, next 8 columns are EEG data, then 3 accelerometer columns
+# The first column is the sample index, next 8 columns are EEG data
 eeg_data = data.iloc[:, 1:9].values.T  # Transpose to have shape (n_channels, n_samples)
 n_channels, n_samples = eeg_data.shape
 
@@ -31,13 +30,18 @@ raw = RawArray(eeg_data, info)
 # Step 5: Compute connectivity matrix (Pearson correlation in this example)
 connectivity_matrix = compute_connectivity_matrix(eeg_data)
 
+# Verify the diagonal elements of the connectivity matrix
+print("Diagonal elements of the connectivity matrix:")
+print(np.diag(connectivity_matrix))
+
+# Display the actual connectivity matrix
+print("Connectivity Matrix (Pearson Correlation):")
+print(connectivity_matrix)
+
 # Step 6: Save or Process Connectivity Matrix
 np.savetxt('connectivity_matrix.csv', connectivity_matrix, delimiter=',')
 
 # Optional: Visualize the Connectivity Matrix
-connectivity_matrix = np.random.rand(8, 8)  # Replace this with your actual connectivity matrix
-
-# First plot: Connectivity Matrix
 plt.figure()
 plt.imshow(connectivity_matrix, cmap='hot', interpolation='nearest')
 plt.colorbar()
@@ -46,11 +50,9 @@ plt.xlabel('Channels')
 plt.ylabel('Channels')
 
 
-# Second plot: NetworkX graph
+# Optional: Create a NetworkX graph and visualize
+plt.figure()
 G = nx.from_numpy_array(connectivity_matrix)
 pos = nx.spring_layout(G)
-
-plt.figure()
 nx.draw(G, pos, with_labels=True, node_size=700, node_color='skyblue', edge_color='k', font_weight='bold')
-plt.title('NetworkX Graph')
 plt.show()

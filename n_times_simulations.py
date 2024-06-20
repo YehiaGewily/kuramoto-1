@@ -14,8 +14,8 @@ sns.set_context("notebook", font_scale=1.5)
 
 def main(n_runs=50):
     # Parameters
-    n_nodes = 500  # Number of oscillators
-    coupling_strength = 3
+    n_nodes = 100  # Number of oscillators
+    coupling_strength =2.5
     dt = 0.01
     T = 1000
 
